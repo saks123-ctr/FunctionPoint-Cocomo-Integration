@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FP &amp; COCOMO Estimator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" defer></script>
+  <script src="{% static 'js/app.js' %}" defer></script>
+</head>
+<body>
+  <div class="layout">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Software estimation</p>
+        <h1>Function Points &amp; Basic COCOMO</h1>
+        <p class="lede">
+          Adjust counts and system characteristics; results and charts update automatically.
+          KLOC is approximated as FP ÷ 100 for COCOMO input.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <label class="field-inline">
+          <span>COCOMO mode</span>
+          <select id="cocomo-mode" aria-label="COCOMO mode">
+            <option value="organic">Organic</option>
+            <option value="semi_detached">Semi-detached</option>
+            <option value="embedded">Embedded</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="card" aria-labelledby="fp-inputs-title">
+        <div class="card-head">
+          <h2 id="fp-inputs-title">Function point counts</h2>
+          <p class="muted">Standard IFPUG-style weights per complexity.</p>
+        </div>
+        <div class="table-wrap">
+          <table class="fp-table">
+            <thead>
+              <tr>
+                <th scope="col">Type</th>
+                <th scope="col">Simple</th>
+                <th scope="col">Average</th>
+                <th scope="col">Complex</th>
+                <th scope="col" class="num">Weight (S / A / C)</th>
+              </tr>
+            </thead>
+            <tbody id="fp-rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="gsc-title">
+        <div class="card-head">
+          <h2 id="gsc-title">General system characteristics</h2>
+          <p class="muted">14 factors, each 0–5. CAF = 0.65 + 0.01 × Σ GSC.</p>
+        </div>
+        <div id="gsc-sliders" class="gsc-grid"></div>
+      </section>
+
+      <section class="card results" aria-live="polite" aria-labelledby="results-title">
+        <div class="card-head">
+          <h2 id="results-title">Results</h2>
+          <p id="result-status" class="muted">Waiting for input…</p>
+        </div>
+        <dl class="metrics">
+          <div><dt>UFP</dt><dd id="metric-ufp">—</dd></div>
+          <div><dt>CAF</dt><dd id="metric-caf">—</dd></div>
+          <div><dt>Adjusted FP</dt><dd id="metric-fp">—</dd></div>
+          <div><dt>KLOC (FP÷100)</dt><dd id="metric-kloc">—</dd></div>
+          <div><dt>Effort (PM)</dt><dd id="metric-effort">—</dd></div>
+          <div><dt>TDEV (months)</dt><dd id="metric-tdev">—</dd></div>
+        </dl>
+        <div class="results-actions">
+          <button type="button" id="btn-download-report" class="btn" disabled title="Save an estimate first">
+            Download report
+          </button>
+          <span id="download-hint" class="muted small-hint">Save a snapshot to enable PDF download.</span>
+        </div>
+        <div class="charts">
+          <div class="chart-box">
+            <h3>UFP breakdown</h3>
+            <canvas id="chart-fp" height="220" aria-label="UFP breakdown chart"></canvas>
+          </div>
+          <div class="chart-box">
+            <h3>Effort vs development time</h3>
+            <canvas id="chart-effort" height="220" aria-label="Effort versus time chart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="history-title">
+        <div class="card-head">
+          <h2 id="history-title">Save snapshot</h2>
+          <p class="muted">Optional project history stored in the database.</p>
+        </div>
+        <div class="save-row">
+          <input type="text" id="project-name" placeholder="Project name" maxlength="255" aria-label="Project name" />
+          <button type="button" id="btn-save" class="btn primary">Save estimate</button>
+        </div>
+        <p id="save-msg" class="muted" role="status"></p>
+        <div class="table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="num">FP</th>
+                <th class="num">Effort (PM)</th>
+                <th class="num">TDEV</th>
+                <th>Updated</th>
+                <th class="actions-col">Report</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer muted">
+      <span>API: <code>/calculate-fp/</code>, <code>/calculate-cocomo/</code>, <code>/api/export-pdf/&lt;id&gt;/</code>, <code>/api/projects/</code></span>
+    </footer>
+  </div>
+</body>
+</html>
